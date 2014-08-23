@@ -67,6 +67,11 @@ module.exports = function(grunt) {
   grunt.registerTask('test', ['clean', 'gitcheck', 'nodeunit']);
 
   // By default, lint and run all tests.
+  grunt.registerTask('t', function() {
+    console.log(grunt.config.get('gitcheck.poop'));
+  });
+
+  // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
 
 };

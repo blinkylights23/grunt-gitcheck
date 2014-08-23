@@ -7,9 +7,9 @@ to staging with uncommitted local changes?
 This plugin runs a few quick sanity checks to help avoid these problems. It will:
 
  * Allow you to configure a grunt task that will cause grunt to quit if a configured set of checks don't pass
- * Optionally check for uncommitted changes
+ * Optionally check for uncommitted local changes
  * Optionally check to ensure there are no local revisions that need to be pushed to the remote
- * Optionally check that your local repo is not behind the remote (revs you need to pull)
+ * Optionally check that your local repo is not behind the remote
 
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
@@ -79,38 +79,61 @@ Default value: `true`
 This causes the task to check against the origin to see if your local repo is ahead (you have local
 revs that have not been pushed) or behind (there are revs at the origin you have not pulled).
 
+#### branches
+Type: `Array`
+Default value: `undefined`
+
+When `options.branchChecking` is `true`, the task will check against this list of branch names - if
+working in a branch not listed in the array when the task is called, an error will be thrown.
 
 ### Usage Examples
 
 #### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
 
 ```js
 grunt.initConfig({
   gitcheck: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
+    production: {
+      branches: ['master']
+    }
   },
-});
-```
-
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
-
-```js
-grunt.initConfig({
-  gitcheck: {
+  s3: {
     options: {
-      separator: ': ',
-      punctuation: ' !!!',
+      cacheTTL: 0,
+      headers: {
+        CacheControl: 300
+      },
+      gzip: false
     },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
+    staging: {
+      options: {
+        bucket: 'staging.mybucket.com',
+      },
+      cwd: 'dist/',
+      src: '**'
     },
-  },
+    production: {
+      options: {
+        bucket: 'www.mybucket.com',
+        gzip: true
+      },
+      cwd: 'dist/',
+      src: '**'
+    }
+  }
 });
+
+grunt.registerTask('deploy', function(target) {
+  if (!target) {
+    grunt.fail.fatal('Deploy where?');
+  }
+  var tasks = ['s3:' + target];
+  if (grunt.config.get('gitcheck.' + target)) {
+    tasks.unshift('gitcheck:' + target);
+  }
+  grunt.task.run(tasks);
+});
+
 ```
 
 ## Contributing
