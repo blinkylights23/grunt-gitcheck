@@ -30,22 +30,21 @@ module.exports = function(grunt) {
 
     // Configuration to be run (and then tested).
     gitcheck: {
-      default_options: {
+      options: {
+        branchChecking: false,
+        enforceUncommittedChanges: false,
+        enforceUpdates: true
+      },
+      production: {
         options: {
         },
-        files: {
-          'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123'],
-        },
+        branches: ['master', 'version2']
       },
-      custom_options: {
+      staging: {
         options: {
-          separator: ': ',
-          punctuation: ' !!!',
         },
-        files: {
-          'tmp/custom_options': ['test/fixtures/testing', 'test/fixtures/123'],
-        },
-      },
+        branches: ['staging']
+      }
     },
 
     // Unit tests.

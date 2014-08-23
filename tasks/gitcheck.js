@@ -8,43 +8,57 @@
 
 'use strict';
 
+
+var util = require('util'),
+    _ = require('lodash'),
+    BranchTool = require('./lib/branchTool'),
+    Orchestrator = require('orchestrator'),
+    chalk = require('chalk');
+
 module.exports = function(grunt) {
 
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
-
   grunt.registerMultiTask('gitcheck', 'Limit grunt tasks to specific git branches', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
+
+    var done = this.async(),
+      success = true,
+      taskData = this.data,
+      taskTarget = this.target,
+      args = Array.prototype.slice.call(arguments, 0);
+
     var options = this.options({
-      punctuation: '.',
-      separator: ', '
+      branchChecking: true,
+      enforceUncommittedChanges: true,
+      enforceUpdates: true
     });
 
-    // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
-      // Concat specified files.
-      var src = f.src.filter(function(filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
-          return false;
-        } else {
-          return true;
-        }
-      }).map(function(filepath) {
-        // Read file source.
-        return grunt.file.read(filepath);
-      }).join(grunt.util.normalizelf(options.separator));
+    var conducta = new Orchestrator();
 
-      // Handle options.
-      src += options.punctuation;
+    var bt,
+        doBranchChecking = (options.branchChecking || options.enforceUpdates || options.enforceUncommittedChanges);
 
-      // Write the destination file.
-      grunt.file.write(f.dest, src);
-
-      // Print a success message.
-      grunt.log.writeln('File "' + f.dest + '" created.');
+    conducta.add('getBranchTool', function(cb) {
+      if (doBranchChecking) {
+        bt = new BranchTool(cb);
+      } else {
+        cb();
+      }
     });
+    conducta.add('branchChecking', ['getBranchTool'], function(cb) {
+      if (doBranchChecking) {
+        bt.checkBranch(cb, taskData, options);
+      } else {
+        cb();
+      }
+    });
+
+    conducta.start(['branchChecking'], function(err) {
+      if (err) {
+        throw(err);
+      } else {
+        done(success);
+      }
+    });
+
   });
 
 };
