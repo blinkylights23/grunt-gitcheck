@@ -1,7 +1,7 @@
 {
   "name": "grunt-gitcheck",
   "description": "Limit grunt tasks to specific git branches",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/paul/grunt-gitcheck",
   "author": {
     "name": "Paul Smith",
